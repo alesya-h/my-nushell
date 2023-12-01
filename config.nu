@@ -171,13 +171,29 @@ let light_theme = {
 }
 
 # External completer example
-# let carapace_completer = {|spans|
-#     carapace $spans.0 nushell $spans | from json
-# }
+let carapace_completer = {|spans|
+    carapace $spans.0 nushell $spans | from json
+}
+
+let run_completer = {|spans|
+    carapace run nushell $spans | from json
+}
+
+let multiple_completers = {|spans|
+    let completers = {
+        './run': $run_completer
+    }
+    let completer = (try {
+      $completers|get $spans.0
+    } catch {
+      $carapace_completer
+    })
+    do $completer $spans
+}
 
 
 # The default config record. This is where much of your global configuration is setup.
-let-env config = {
+$env.config = {
   # true or false to enable or disable the welcome banner at startup
   show_banner: false
   ls: {
@@ -186,9 +202,6 @@ let-env config = {
   }
   rm: {
     always_trash: false # always act as if -t was given. Can be overridden with -p
-  }
-  cd: {
-    abbreviations: false # allows `cd s/o/f` to expand to `cd some/other/folder`
   }
   table: {
     mode: rounded # basic, compact, compact_double, light, thin, with_love, rounded, reinforced, heavy, none, other
@@ -260,7 +273,7 @@ let-env config = {
 
   history: {
     max_size: 10000 # Session has to be reloaded for this to take effect
-    sync_on_enter: false # Enable to share history between multiple sessions, else you have to close the session to write history to file
+    sync_on_enter: true # Enable to share history between multiple sessions, else you have to close the session to write history to file
     file_format: "plaintext" # "sqlite" or "plaintext"
   }
   completions: {
@@ -271,7 +284,7 @@ let-env config = {
     external: {
       enable: true # set to false to prevent nushell looking into $env.PATH to find more suggestions, `false` recommended for WSL users as this look up my be very slow
       max_results: 100 # setting it lower can improve completion performance at the cost of omitting some options
-      completer: null # check 'carapace_completer' above as an example
+      completer: $multiple_completers # check 'carapace_completer' above as an example
     }
   }
   filesize: {
@@ -296,15 +309,14 @@ let-env config = {
   hooks: {
     pre_prompt: [{||
       let direnv = (direnv export json | from json)
-      let direnv = if ($direnv | length) == 1 { $direnv } else { {} }
-      $direnv | load-env
+      if $direnv != null { $direnv | load-env }
     }]
     pre_execution: [{||
       null  # replace with source code to run before the repl input is run
     }]
     env_change: {
       PWD: [{|before, after|
-        null  # replace with source code to run if the PWD environment is different since the last repl input
+        zoxide add $after
       }]
     }
     display_output: {||
@@ -536,3 +548,4 @@ let-env config = {
     }
   ]
 }
+source ~/.config/nushell/my.nu

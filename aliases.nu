@@ -3,6 +3,7 @@ alias ag = ag --pager=less -i
 alias fda = fd -I
 alias ec =  emacsclient -c 
 alias em = emacsclient -c -n
+alias gedit = gnome-text-editor
 alias rv = rvim
 alias killall = pkill -f
 alias grep = grep --color=auto
@@ -21,6 +22,10 @@ alias tailf = tail -f
 alias nix-fetch = nix-store -r
 
 # alias cp='cp --reflink=auto'
+alias mini = ssh alesya@mini.alesya.cloud
+
+alias pmount = udisksctl mount -b
+alias pumount = udisksctl unmount -b
 
 alias dmesg = sudo dmesg -H -w -l info
 alias alsamixer = alsamixer -V all
@@ -28,8 +33,8 @@ alias alsamixer = alsamixer -V all
 alias v = nvim
 alias e = emacsclient
 alias ef = emacsclient $"(fzf)"
-#alias mc = env LC_COLLATE=C DISABLE_DIRENV=true mc
-alias mc = env DISABLE_DIRENV=true mc
+#alias mc = env LC_COLLATE=C DISABLE_DIRENV=true SHELL=zsh mc
+alias mc = env DISABLE_DIRENV=true SHELL=zsh mc -U
 
 def p   [] { ^ps -o pid,pcpu,etime,cmd xf | less }
 def pa  [] { ^ps -o user,pid,pcpu,etime,cmd axf|less }
@@ -53,8 +58,8 @@ alias gc = git commit
 alias gca = git commit --amend
 alias gclean = git clean -f
 alias gclone = git clone
-alias gcb = git checkout $"(git branch|fzf|sed "s/^..//")"
-alias gcba = git checkout $"(git branch -a|fzf|sed 's/^..//'|sed 's|remotes/origin/||')"
+alias gcb = git checkout (git branch|fzf|str replace -r '^..' '')
+alias gcba = git checkout (git branch -a|fzf|str replace -r '^..' ''|str replace 'remotes/origin/' '')
 # alias gswh = "git reflog|grep checkout|grep ' to '|sed -E 's|^.+ to ||'|grep -v -E '^.{40}$'|uniq|fzf|xargs git switch"
 # alias gco. = git checkout .
 alias gco = git checkout
@@ -76,6 +81,7 @@ alias gg = git grep
 alias ggrep = git grep
 alias ggui = sh -c 'git gui&'
 alias gguia = sh -c 'git gui citool --amend&'
+def gh [] { git branch|cut -c3-|lines|each {|b| {name: $b, date: (git show -s '--format=format:%cI' $b|into datetime)}}|sort-by date }
 alias gim = git imerge merge
 alias gir = git imerge rebase
 alias gic = git imerge continue
@@ -121,8 +127,8 @@ def gst [...args] {
   git status --porcelain $args|sed -E 's/^(.)(.)/\1|\2|/'
   | lines
   | split column '|' staged unstaged name
-  | update staged   {|e| let val = $e.staged;   if ($val == ' ') { $nothing } else { $val }}
-  | update unstaged {|e| let val = $e.unstaged; if ($val == ' ') { $nothing } else { $val }}
+  | update staged   {|e| let val = $e.staged;   if ($val == ' ') { null } else { $val }}
+  | update unstaged {|e| let val = $e.unstaged; if ($val == ' ') { null } else { $val }}
   | update name {|e| $e.name|str trim| str replace $"^($rel_path)/" ""}
   | each {|e| $e| merge ( try { ls -D $e.name|reject name|get 0 } catch { {} }) }
   | sort-by name -r
@@ -130,7 +136,7 @@ def gst [...args] {
   | sort-by staged -r
   | reverse
   | update name {|e|
-      let color = if ($e.staged != $nothing) { if ($e.unstaged != $nothing) { 'yellow' } else { 'green' } } else { 'red' };
+      let color = if ($e.staged != null) { if ($e.unstaged != null) { 'yellow' } else { 'green' } } else { 'red' };
       $"(ansi $color)($e.name)(ansi reset)"
     }
 }
