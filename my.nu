@@ -12,6 +12,11 @@ source ~/.config/nushell/quitcd.nu
 
 source ~/.config/nushell/oh-my-posh.nu
 $env.POSH_THEME = $"($env.HOME)/.config/nushell/alesya.omp.yaml"
+# source-if-exist "$HOME/p/fork/zsh-nix-shell/nix-shell.plugin.zsh"
+
+# if [ -n "$NIX_SHELL_PACKAGES" ]; then
+#   export PS1_NOTE="$PS1_NOTE > nix($NIX_SHELL_PACKAGES)"
+# fi
 
 $env.SHELL = 'nu'
 
@@ -87,10 +92,8 @@ def nix-add [file] {
   nix hash file $f
 }
 
-# def screenpad [n: number] {
-#     (printf '\_SB.ATKD.WMNB 0x0 0x53564544 b32000500%X000000' $n) | sudo tee /proc/acpi/call
-# }
-
 def "date at" [when] {
     ^date $"--date=($when)" -Is|into datetime
 }
+
+source ~/.config/nushell/secret.nu

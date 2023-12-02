@@ -52,6 +52,7 @@ def du3 [] { du -d 3|sort-by apparent }
 
 alias ga. = git add -A .
 alias ga = git add -A
+alias gai = git add -i
 alias gb = git branch
 alias gba = git branch -a
 alias gc = git commit
